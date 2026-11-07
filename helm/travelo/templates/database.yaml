@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: travelo-database
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: travelo-database
+    {{- include "travelo.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    app: travelo-database
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: travelo-database
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: travelo-database
+    {{- include "travelo.labels" . | nindent 4 }}
+spec:
+  serviceName: travelo-database
+  replicas: 1
+  selector:
+    matchLabels:
+      app: travelo-database
+  template:
+    metadata:
+      labels:
+        app: travelo-database
+        tier: database
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: mysql
+          image: "{{ .Values.images.database.repository }}:{{ .Values.images.database.tag }}"
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: travelo-db-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: travelo-config
+                  key: MYSQL_DATABASE
+          resources:
+            {{- toYaml .Values.database.resources | nindent 12 }}
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+          startupProbe:
+            tcpSocket:
+              port: 3306
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            periodSeconds: 20
+            timeoutSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.database.storage }}

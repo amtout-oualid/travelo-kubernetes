@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travelo-backend
+  namespace: travelo
+  labels:
+    app: travelo-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: travelo-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: travelo-backend
+        tier: backend
+    spec:
+      initContainers:
+        - name: wait-for-database
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - until nc -z travelo-database 3306; do echo "waiting for MySQL"; sleep 3; done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+      containers:
+        - name: backend
+          image: oualidamtout/travelo-backend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: travelo-config
+          env:
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: travelo-db-secret
+                  key: SPRING_DATASOURCE_PASSWORD
+          resources:
+            requests:
+              cpu: 250m
+              memory: 320Mi
+            limits:
+              cpu: 750m
+              memory: 640Mi
+          startupProbe:
+            httpGet:
+              path: /api/hello
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet:
+              path: /api/hello
+              port: 8080
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/hello
+              port: 8080
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: travelo-backend
+  namespace: travelo
+  labels:
+    app: travelo-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: travelo-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

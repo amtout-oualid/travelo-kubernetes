@@ -1,0 +1,12 @@
+# Dependencies are installed inside the image with npm ci, never copied from the host
+node_modules/
+build/
+coverage/
+.git
+.gitignore
+*.md
+npm-debug.log*
+.env*
+Dockerfile
+.dockerignore
+nginx.conf.original

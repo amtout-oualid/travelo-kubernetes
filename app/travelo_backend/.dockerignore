@@ -1,0 +1,19 @@
+# Build output and IDE files are never sent to the Docker daemon
+target/
+.idea/
+.vscode/
+*.iml
+.git
+.gitignore
+.gitattributes
+HELP.md
+*.md
+# The Maven wrapper is not needed: the build stage uses the official Maven image
+.mvn/
+mvnw
+mvnw.cmd
+# Never copy secrets into the build context
+.env
+*.env
+Dockerfile
+.dockerignore

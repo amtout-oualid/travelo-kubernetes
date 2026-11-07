@@ -1,0 +1,68 @@
+images:
+  pullPolicy: IfNotPresent
+  backend:
+    repository: oualidamtout/travelo-backend
+    tag: "1.0"
+  frontend:
+    repository: oualidamtout/travelo-frontend
+    tag: "1.1"
+  database:
+    repository: oualidamtout/travelo-database
+    tag: "1.0"
+  waitForDatabase: busybox:1.36
+
+database:
+  name: travelo_db
+  user: root
+  rootPassword: Travelo-Helm-2026
+  storage: 1Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 384Mi
+    limits:
+      cpu: 500m
+      memory: 640Mi
+
+backend:
+  replicas: 2
+  corsAllowedOrigins: http://travelo-helm.localhost,http://*.localhost
+  resources:
+    requests:
+      cpu: 250m
+      memory: 320Mi
+    limits:
+      cpu: 750m
+      memory: 640Mi
+
+frontend:
+  replicas: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  host: travelo-helm.localhost
+
+quota:
+  enabled: true
+  hard:
+    pods: "12"
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    persistentvolumeclaims: "2"
+
+rbac:
+  enabled: true
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1

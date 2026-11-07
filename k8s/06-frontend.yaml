@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travelo-frontend
+  namespace: travelo
+  labels:
+    app: travelo-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: travelo-frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: travelo-frontend
+        tier: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: oualidamtout/travelo-frontend:1.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: travelo-config
+                  key: BACKEND_URL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          startupProbe:
+            httpGet:
+              path: /
+              port: 3000
+            periodSeconds: 3
+            failureThreshold: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: travelo-frontend
+  namespace: travelo
+  labels:
+    app: travelo-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: travelo-frontend
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000

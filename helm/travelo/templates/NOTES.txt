@@ -1,0 +1,9 @@
+Travelo has been deployed in the namespace {{ .Release.Namespace }}.
+
+Check the pods:
+  kubectl get pods -n {{ .Release.Namespace }}
+{{- if .Values.ingress.enabled }}
+
+Open the application (with "minikube tunnel" running):
+  http://{{ .Values.ingress.host }}
+{{- end }}

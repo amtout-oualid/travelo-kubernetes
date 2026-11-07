@@ -1,0 +1,7 @@
+*.tgz
+!charts/*.tgz
+target/
+node_modules/
+build/
+.idea/
+.vscode/

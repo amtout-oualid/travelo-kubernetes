@@ -1,0 +1,22 @@
+apiVersion: v1
+entries:
+  travelo:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2026-11-08T22:09:21.5630495Z"
+    description: Travelo flight booking application (React, Spring Boot, MySQL) on
+      Kubernetes
+    digest: 76bb3c0c56083f87a77de08929f245999a2e73536e6baea3ec01d7046db8a976
+    keywords:
+    - travelo
+    - spring-boot
+    - react
+    - mysql
+    maintainers:
+    - name: Oualid AMTOUT
+    name: travelo
+    type: application
+    urls:
+    - https://raw.githubusercontent.com/amtout-oualid/travelo-kubernetes/main/charts/travelo-1.0.0.tgz
+    version: 1.0.0
+generated: "2026-11-08T22:09:21.5609293Z"
